@@ -21,13 +21,16 @@ timezone_choices = [
 
 # Define choices for Discord timestamp formats
 format_choices = [
-    app_commands.Choice(name="Relative (in ...)", value="R"),   # <t:epoch:R>
-    app_commands.Choice(name="Short Time", value="t"),
-    app_commands.Choice(name="Long Time", value="T"),
-    app_commands.Choice(name="Short Date", value="d"),
-    app_commands.Choice(name="Long Date", value="D"),
-    app_commands.Choice(name="Short DateTime", value="f"),
-    app_commands.Choice(name="Long DateTime", value="F"),
+    app_commands.Choice(
+        name="Relative (in 420 days)", value="R"),   # <t:epoch:R>
+    app_commands.Choice(name="Short Time (16:20)", value="t"),
+    app_commands.Choice(name="Long Time (16:20:30)", value="T"),
+    app_commands.Choice(name="Short Date (20/04/2021)", value="d"),
+    app_commands.Choice(name="Long Date (20 April 2021)", value="D"),
+    app_commands.Choice(
+        name="Short DateTime (20 April 2021 16:20)", value="f"),
+    app_commands.Choice(
+        name="Long DateTime (Tuesday, 20 April 2021 16:20)", value="F"),
 ]
 
 
@@ -48,7 +51,7 @@ async def on_ready():
 )
 @app_commands.describe(
     pre_msg="Message before the countdown",
-    datetime_str="Format: YYYY-MM-DD HH:MM:SS (24h)",
+    datetime_str="Format: YYYY-MM-DD HH:MM:SS (24h, time is optional)",
     timezone="Your timezone",
     format="Timestamp display format (default: Relative)",
     post_msg="Message after the countdown"
@@ -63,16 +66,37 @@ async def epoch(
 ):
     try:
         user_tz = pytz.timezone(timezone.value)
-        dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+        dt = generate_unix_time(datetime_str)
+        # dt = datetime.strptime(datetime, "%Y-%m-%d %H:%M:%S")
         localized_dt = user_tz.localize(dt)
         seconds = int(localized_dt.timestamp())
         fmt = format.value if format else "R"
-        countdown_msg = f"{pre_msg} <t:{seconds}:{fmt}> {post_msg}".strip()
+        countdown_msg = f"{pre_msg} <t:{seconds}:{fmt}>{post_msg}".strip()
         await interaction.response.send_message(countdown_msg)
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
 
+
+def generate_unix_time(datetime_str):
+    formats = [
+        "%Y-%m-%d %H:%M:%S",  # Full format with seconds
+        "%Y-%m-%d %H:%M",     # Without second
+        "%Y-%m-%d %H",        # Without minute
+        "%Y-%m-%d",           # Without hour
+    ]
+    for fmt in formats:
+        try:
+            dt = datetime.strptime(datetime_str, fmt)
+            break
+        except Exception as e:
+            # print(f"{fmt} is not valid for input {e}")
+            continue
+    return dt
+
+
 client.run(TOKEN)
-"""
-https://discord.com/oauth2/authorize?client_id=1371199566749237492&permissions=274877908992&integration_type=0&scope=bot+applications.commands
-"""
+# test = generate_unix_time("2023-10-01 12:00:00")
+# test = generate_unix_time("2023-10-01 12:00")
+# test = generate_unix_time("2023-10-01 12")
+# test = generate_unix_time("2023-10-01")
+# test = generate_unix_time("2023-10-01")
