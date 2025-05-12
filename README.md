@@ -8,5 +8,6 @@ A simple Discord bot that converts a datetime string into epoch seconds and form
 ```slash
 /epoch pre_msg:Count down begins: datetime_str:2025-10-10 10:10 timezone:Vancouver (America/Vancouver) post_msg:. Get ready!
 ```
-Note: format is optional, default value is Relative (in 420 days)
 ![Alt text](./image.png)
+
+Note: format is optional, default value is "Relative (in 420 days)".
